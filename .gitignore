@@ -1,3 +1,11 @@
 /output.wav
 /ref_audio.wav
 /venv
+
+**/api_key*
+**/*api_key*
+**/api-key*
+**/*.key
+**/*_key
+**/*.token
+**/secret*
