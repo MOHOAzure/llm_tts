@@ -1,6 +1,8 @@
-/output.wav
-/ref_audio.wav
+*/output.wav
+*/ref_audio.wav
 /venv
+
+*pyc
 
 **/api_key*
 **/*api_key*
