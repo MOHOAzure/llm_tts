@@ -58,7 +58,7 @@
           ```bash
           python summarizer_server/main.py
 
-          # Other
+          # OR
           # 設定 Flask App 環境變數
           # Windows (cmd)
           set FLASK_APP=summarizer_server.main
@@ -68,7 +68,7 @@
           export FLASK_APP=summarizer_server.main
 
           # 啟動伺服器 (預設運行在 http://127.0.0.1:5000)
-          flask run
+          flask --app summarizer_server/main run
           ```
         *   您應該會看到伺服器啟動的訊息。保持此終端機視窗開啟。
 
