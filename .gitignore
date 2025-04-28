@@ -2,6 +2,8 @@
 */ref_audio.wav
 /venv
 
+*/logs/*
+
 *pyc
 
 **/api_key*
