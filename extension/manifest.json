@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "網頁語音摘要",
+  "name": "Webpage Audio Summarizer",
   "version": "0.1.0",
-  "description": "點擊圖示即可聽取當前網頁的 AI 摘要。",
+  "description": "Click the icon to listen to an AI summary of the current webpage.",
   "permissions": [
     "activeTab",
     "storage"
@@ -16,7 +16,8 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "聽取摘要"
+    "default_title": "Listen to Summary",
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "background.js"
