@@ -26,7 +26,7 @@ def summarize_text_with_gemini(text, api_key, system_prompt, user_prompt_templat
         # gemini-2.5-pro-preview-03-25, gemini-2.5-flash-preview-04-17
         # gemini-2.0-flash-lite, gemini-2.0-flash
 
-        model_name = "gemini-2.5-pro-preview-03-25"
+        model_name = "gemini-2.5-pro-exp-03-25"
         logger.info(f"Using Gemini model: {model_name}")
         
         model = genai.GenerativeModel(model_name=model_name,
