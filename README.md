@@ -4,6 +4,11 @@ This project provides a tool that allows users to quickly obtain an AI-generated
 
 本專案旨在提供一個工具，讓使用者在瀏覽網頁時，能夠快速獲取該網頁內容的 AI 摘要，並以語音形式播放出來。
 
+# Demo
+https://github.com/user-attachments/assets/74df555c-12a6-4957-9880-5feed64d95d9
+
+
+
 ## Architecture / 架構
 
 The project consists of two main parts:
