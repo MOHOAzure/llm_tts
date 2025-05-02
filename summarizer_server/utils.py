@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import logging
 import yaml
 import trafilatura
-import os # Needed for path joining
+import os
+import feedparser
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,26 @@ def read_prompt_config(filepath="prompt_config.yaml"):
         logger.error(f"Error parsing YAML file {full_path}: {e}")
         raise
 
+def read_rss_feeds_config(filepath="prompt_config.yaml"):
+    """Reads the list of configured RSS feeds from the YAML file."""
+    server_dir = os.path.dirname(__file__)
+    full_path = os.path.join(server_dir, filepath)
+    try:
+        with open(full_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+            feeds = config.get("rss_feeds", [])
+            if not isinstance(feeds, list):
+                logger.warning(f"'rss_feeds' in {full_path} is not a list. Returning empty list.")
+                return []
+            logger.info(f"Read {len(feeds)} RSS feed configurations from {full_path}")
+            return feeds
+    except FileNotFoundError:
+        logger.error(f"Prompt config file not found: {full_path}")
+        return [] # Return empty list if file not found
+    except yaml.YAMLError as e:
+        logger.error(f"Error parsing YAML file {full_path}: {e}")
+        return [] # Return empty list on parse error
+
 # --- Core Functionality Functions ---
 
 def get_webpage_text(url):
@@ -68,11 +89,43 @@ def get_webpage_text(url):
             logger.warning(f"Trafilatura extracted no main content from {url}. Check page structure.")
             return ""
 
+def get_latest_article_url_from_rss(feed_url):
+    """Fetches an RSS feed and returns the URL of the latest article."""
+    logger.info(f"Fetching RSS feed: {feed_url}")
+    try:
+        feed_data = feedparser.parse(feed_url)
+
+        # Check for parsing errors or empty feed
+        if feed_data.bozo:
+            bozo_exception = feed_data.get('bozo_exception', 'Unknown parsing error')
+            logger.warning(f"RSS feed parsing error for {feed_url}: {bozo_exception}")
+            # Depending on the error, might still have entries
+            # return None # Or raise an error
+
+        if not feed_data.entries:
+            logger.warning(f"RSS feed is empty or has no entries: {feed_url}")
+            return None
+
+        # Get the latest entry (usually the first one)
+        latest_entry = feed_data.entries[0]
+        article_url = latest_entry.get('link')
+
+        if not article_url:
+            logger.warning(f"Could not find article link in the latest RSS entry for {feed_url}")
+            return None
+
+        logger.info(f"Found latest article URL from RSS: {article_url}")
+        return article_url
+
+    except Exception as e:
+        logger.error(f"Error fetching or parsing RSS feed {feed_url}: {e}", exc_info=True)
+        return None # Return None on error
+
 # --- Voice Synthesis Functions ---
 
-def call_voice_api(summary, voice_api_url="http://127.0.0.1:9880/tts", ref_audio_path="../ref_audio.wav"):
+def call_voice_api(text, voice_api_url="http://127.0.0.1:9880/tts", ref_audio_path="ref_audio.wav"):
     """
-    Calls the local voice API to synthesize the summary.
+    Calls the local voice API to synthesize the text.
     Assumes ref_audio.wav is one level up from the server directory.
     """
     # Adjust path for ref_audio relative to the server directory
@@ -86,7 +139,7 @@ def call_voice_api(summary, voice_api_url="http://127.0.0.1:9880/tts", ref_audio
          ref_audio_param = ref_audio_full_path
 
     voice_params = {
-        "text": summary, "text_lang": "zh",
+        "text": text, "text_lang": "zh",
         "prompt_lang": "auto", "text_split_method": "cut5", "batch_size": "1",
         "media_type": "wav", "streaming_mode": "false"
     }
@@ -95,7 +148,7 @@ def call_voice_api(summary, voice_api_url="http://127.0.0.1:9880/tts", ref_audio
         voice_params["ref_audio_path"] = ref_audio_param
 
     try:
-        logger.info(f"Sending request to voice API: {voice_api_url} with params: { {k:v for k,v in voice_params.items() if k != 'text'} }") # Avoid logging full summary
+        logger.info(f"Sending request to voice API: {voice_api_url} with params: { {k:v for k,v in voice_params.items() if k != 'text'} }")
         response = requests.get(voice_api_url, params=voice_params)
         response.raise_for_status()
         logger.info("Successfully received audio data from voice API.")

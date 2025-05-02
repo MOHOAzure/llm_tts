@@ -62,29 +62,43 @@ def summarize_endpoint():
         return jsonify({"error": "Request must be JSON"}), 400
 
     data = request.get_json()
-    url = data.get('url')
+    url_from_request = data.get('url')
+    rss_url_from_request = data.get('rss_url')
     summarizer_choice = data.get('summarizer_choice', 'gemini') # Default to gemini
 
-    if not url:
-        logger.warning("Missing 'url' in request data")
-        return jsonify({"error": "Missing 'url' in request data"}), 400
+    if not url_from_request and not rss_url_from_request:
+        logger.warning("Missing 'url' or 'rss_url' in request data")
+        return jsonify({"error": "Request must contain either 'url' or 'rss_url'"}), 400
+
+    # Determine the target URL to fetch content from
+    target_url = None
+    source_type = None
+    if rss_url_from_request:
+        source_type = "RSS"
+        target_url = utils.get_latest_article_url_from_rss(rss_url_from_request)
+        if not target_url:
+            logger.error(f"Could not get article URL from RSS feed: {rss_url_from_request}")
+            return jsonify({"error": f"Could not retrieve article from RSS feed: {rss_url_from_request}"}), 400
+    else:
+        source_type = "Direct URL"
+        target_url = url_from_request
 
     # Generate timestamp for logging: YYYYMMDD_HHMMSS_ms
     now = datetime.datetime.now()
     timestamp_str = now.strftime("%Y%m%d_%H%M%S") + f"_{now.microsecond // 1000:03d}"
 
-    logger.info(f"Request ID [{timestamp_str}]: Received URL: {url} with summarizer: {summarizer_choice}")
+    logger.info(f"Request ID [{timestamp_str}]: Processing {source_type}: {target_url} (from {rss_url_from_request or url_from_request}) with summarizer: {summarizer_choice}")
 
     try:
         # 1. Read configurations
         api_key = utils.read_api_key(filepath=API_KEY_FILE, key_type=summarizer_choice)
         system_prompt, user_prompt_template = utils.read_prompt_config(filepath=PROMPT_CONFIG_FILE)
 
-        # 2. Get webpage text
-        web_text = utils.get_webpage_text(url)
+        # 2. Get webpage text from the target URL
+        web_text = utils.get_webpage_text(target_url)
         if not web_text:
-            logger.warning(f"Request ID [{timestamp_str}]: No text extracted, returning error.")
-            return jsonify({"error": "Could not extract text content from the URL."}), 400 # Return specific error
+            logger.warning(f"Request ID [{timestamp_str}]: No text extracted from {target_url}, returning error.")
+            return jsonify({"error": f"Could not extract text content from the target URL: {target_url}"}), 400
 
         # 3. Summarize text
         summary = ""
@@ -102,8 +116,8 @@ def summarize_endpoint():
         effective_ref_audio_path = REF_AUDIO_PATH if os.path.exists(REF_AUDIO_PATH) else None
         audio_content = utils.call_voice_api(summary, ref_audio_path=effective_ref_audio_path)
 
-        # 5. Log data (web text, summary, audio)
-        log_request_data(timestamp_str, url, web_text, summary, audio_content)
+        # 5. Log data (web text, summary, audio) - Log the original source URL/RSS
+        log_request_data(timestamp_str, rss_url_from_request or url_from_request, web_text, summary, audio_content)
 
         # 6. Encode audio data as Base64
         audio_base64 = base64.b64encode(audio_content).decode('utf-8')
@@ -127,6 +141,16 @@ def summarize_endpoint():
     except Exception as e:
         logger.error(f"Request ID [{timestamp_str}]: An unexpected error occurred: {e}", exc_info=True) # Use error level
         return jsonify({"error": "An internal server error occurred"}), 500
+
+@app.route('/config/rss_feeds', methods=['GET'])
+def get_rss_feeds_config():
+    """API endpoint to return the configured list of RSS feeds."""
+    try:
+        feeds = utils.read_rss_feeds_config(filepath=PROMPT_CONFIG_FILE)
+        return jsonify({"rss_feeds": feeds})
+    except Exception as e:
+        logger.error(f"Error reading RSS feed config: {e}", exc_info=True)
+        return jsonify({"error": "Failed to read RSS feed configuration"}), 500
 
 if __name__ == '__main__':
     # Note: For development only. Use a proper WSGI server like Gunicorn in production.

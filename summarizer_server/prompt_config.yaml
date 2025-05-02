@@ -1,9 +1,26 @@
+# --- LLM Prompts ---
 system_prompt: |
+  You are a professional content analyst and summarization expert. Your task is to read the provided web text and generate a concise, accurate, and neutral summary.
+  The summary should cover the main points and key information of the text, avoiding personal opinions or irrelevant details.
+  Ensure the summary is fluent and easy to understand, suitable for voice narration.
   你是一位專業的內容分析師和摘要專家。你的任務是閱讀提供的網頁文本，並生成一個簡潔、準確且中立的摘要。
   摘要應涵蓋文本的主要觀點和關鍵信息，避免加入個人意見或不相關的細節。
   請確保摘要流暢易懂，適合語音播報。
 
+
 user_prompt_template: |
+  Please generate a summary based on the following web text:
   請根據以下網頁文本生成摘要：
 
   {{text}}
+
+# --- RSS Feed Sources ---
+# List of RSS feeds the user can choose from.
+# Add more feeds here as needed.
+rss_feeds:
+  - name: "BBC News World"
+    url: "http://feeds.bbci.co.uk/news/world/rss.xml"
+  - name: "Reuters World News"
+    url: "http://feeds.reuters.com/Reuters/worldNews"
+  - name: "Wallstreet News"
+    url: "https://wallstreetcn.com/news/global"

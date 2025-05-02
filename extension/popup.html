@@ -49,11 +49,20 @@
     </style>
 </head>
 <body>
-    <div id="status">Loading summary...</div>
-    <div id="summary-container">
+    <div id="source-selector">
+        <label for="source-select">Source:</label>
+        <select name="sources" id="source-select">
+            <option value="current_tab" selected>Current Tab</option>
+            <!-- RSS feeds will be populated here -->
+        </select>
+        <button id="summarize-button" style="margin-left: 5px;">Summarize</button>
+    </div>
+    <hr>
+    <div id="status">Select source and click Summarize.</div>
+    <div id="summary-container" style="display: none;"> <!-- Hide initially -->
         <!-- Summary text will be inserted here -->
     </div>
-    <div id="controls">
+    <div id="controls" style="display: none;"> <!-- Hide initially -->
         <button id="replay-button" disabled>Replay Audio</button>
     </div>
 
