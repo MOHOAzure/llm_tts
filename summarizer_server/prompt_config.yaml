@@ -9,7 +9,7 @@ system_prompt: |
 
 
 user_prompt_template: |
-  Please generate a concise summary suitable for a 3-minute read based on the following web text:
+  Please generate a summary based on the following web text:
   請根據以下網頁文本生成摘要：
 
   {{text}}
