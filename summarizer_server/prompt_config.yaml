@@ -9,7 +9,7 @@ system_prompt: |
 
 
 user_prompt_template: |
-  Please generate a summary based on the following web text:
+  Please generate a concise summary suitable for a 3-minute read based on the following web text:
   請根據以下網頁文本生成摘要：
 
   {{text}}
@@ -24,3 +24,12 @@ rss_feeds:
     url: "http://feeds.reuters.com/Reuters/worldNews"
   - name: "Wallstreet News"
     url: "https://wallstreetcn.com/news/global"
+
+# --- Scheduled Task Settings ---
+# Default list of RSS feed URLs for the daily scheduled task.
+# The scheduler will process all URLs in this list.
+scheduled_rss_feeds:
+  - "http://feeds.bbci.co.uk/news/world/rss.xml"
+  - "http://feeds.reuters.com/Reuters/worldNews"
+  - "https://wallstreetcn.com/news/global"
+  # Add more URLs here if needed for the default schedule
