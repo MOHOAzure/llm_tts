@@ -236,7 +236,8 @@ def summarize_endpoint():
 if not app.config.get('SCHEDULER_RUNNING'):
     scheduler = BackgroundScheduler(timezone=pytz.utc)
     # Schedule the job to run daily at midnight UTC
-    scheduler.add_job(run_scheduled_summaries, 'cron', hour=0, minute=0, id='daily_summary_job')
+    # scheduler.add_job(run_scheduled_summaries, 'cron', hour=0, minute=0, id='daily_summary_job')
+    scheduler.add_job(run_scheduled_summaries, trigger='interval', seconds=60, id='daily_summary_job')
     try:
         scheduler.start()
         logger.info("Scheduler started. Job 'run_scheduled_summaries' scheduled daily at 00:00 UTC.")
